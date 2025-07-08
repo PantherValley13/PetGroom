@@ -9,14 +9,14 @@ import Foundation
 import SwiftUI
 
 struct ClientsView: View {
-    @State private var clients = Client.sample
-    @State private var pets = Pet.sample
+    @EnvironmentObject var manager: ClientManager
+    @State private var showingAddClient = false
     
     var body: some View {
         NavigationView {
             List {
                 Section("Clients") {
-                    ForEach(clients) { client in
+                    ForEach(manager.clients) { client in
                         NavigationLink(destination: ClientDetailView(client: client)) {
                             ClientRow(client: client)
                         }
@@ -24,7 +24,7 @@ struct ClientsView: View {
                 }
                 
                 Section("Pets") {
-                    ForEach(pets) { pet in
+                    ForEach(manager.pets) { pet in
                         NavigationLink(destination: PetDetailView(pet: pet)) {
                             PetRow(pet: pet)
                         }
@@ -35,10 +35,14 @@ struct ClientsView: View {
             .navigationTitle("Clients & Pets")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {}) {
+                    Button(action: { showingAddClient = true }) {
                         Image(systemName: "plus")
                     }
                 }
+            }
+            .sheet(isPresented: $showingAddClient) {
+                AddClientView()
+                    .environmentObject(manager)
             }
         }
     }
@@ -85,6 +89,9 @@ struct ClientDetailView: View {
                 Text(client.name)
                 Text(client.address)
                 Text(client.phone)
+                if let email = client.email {
+                    Text(email)
+                }
             }
         }
         .navigationTitle(client.name)
@@ -92,6 +99,7 @@ struct ClientDetailView: View {
 }
 
 struct PetDetailView: View {
+    @EnvironmentObject var manager: ClientManager
     @State var pet: Pet
     
     var body: some View {
@@ -107,5 +115,8 @@ struct PetDetailView: View {
             }
         }
         .navigationTitle(pet.name)
+        .onChange(of: pet.notes) { _, newValue in
+            manager.saveNotes(newValue, for: pet)
+        }
     }
 }

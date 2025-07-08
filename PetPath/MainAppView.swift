@@ -9,6 +9,8 @@ import Foundation
 import SwiftUI
 
 struct MainAppView: View {
+    @StateObject var clientManager = ClientManager()
+    
     var body: some View {
         TabView {
             RouteView()
@@ -20,6 +22,7 @@ struct MainAppView: View {
                 .tabItem {
                     Label("Clients", systemImage: "person.2")
                 }
+                .environmentObject(clientManager)
             
             AnalyticsView()
                 .tabItem {
