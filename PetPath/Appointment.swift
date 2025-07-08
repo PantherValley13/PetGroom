@@ -10,23 +10,35 @@ import CoreLocation
 
 struct Appointment: Identifiable {
     let id = UUID()
-    var clientName: String
-    var petName: String
+    var client: Client
+    var pet: Pet
     var time: Date
     var duration: Int
     var location: CLLocationCoordinate2D?
     
+    // Computed properties for backward compatibility
+    var clientName: String {
+        client.name
+    }
+    
+    var petName: String {
+        pet.name
+    }
+    
     static var sample: [Appointment] {
-        [
+        let sampleClients = Client.sample
+        let samplePets = Pet.sample
+        
+        return [
             Appointment(
-                clientName: "Sarah Johnson",
-                petName: "Max",
+                client: sampleClients[0],
+                pet: samplePets[0],
                 time: Date().addingTimeInterval(3600 * 2),
                 duration: 60
             ),
             Appointment(
-                clientName: "Michael Chen",
-                petName: "Bella",
+                client: sampleClients[1],
+                pet: samplePets[1],
                 time: Date().addingTimeInterval(3600 * 4),
                 duration: 45
             )

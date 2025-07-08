@@ -12,6 +12,7 @@ struct Pet: Identifiable {
     var breed: String
     var notes: String
     var temperament: String
+    var ownerId: UUID? // Link to Client
     
     static var sample: [Pet] {
         [

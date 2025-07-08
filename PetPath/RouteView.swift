@@ -9,7 +9,9 @@ import Foundation
 import SwiftUI
 
 struct RouteView: View {
-    @StateObject private var routeService = RouteService()
+    @StateObject var routeManager = RouteManager()
+    @EnvironmentObject var clientManager: ClientManager
+    @State private var showingAddAppointment = false
     
     var body: some View {
         NavigationView {
@@ -24,22 +26,18 @@ struct RouteView: View {
                 .cornerRadius(12)
                 .padding()
                 
-                Button(action: {
-                    routeService.optimizeRoute()
-                }) {
-                    Label("Optimize Today's Route", systemImage: "arrow.triangle.merge")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.orange)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                }
-                .padding(.horizontal)
+                Button("Optimize Route", action: routeManager.optimizeRoute)
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.orange)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+                    .padding(.horizontal)
                 
                 List {
-                    Section("Today's Appointments") {
-                        ForEach(routeService.appointments) { appointment in
+                    Section("Optimized Route") {
+                        ForEach(routeManager.optimizedRoute) { appointment in
                             AppointmentRow(appointment: appointment)
                         }
                     }
@@ -48,10 +46,15 @@ struct RouteView: View {
             .navigationTitle("Today's Route")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {}) {
-                        Image(systemName: "ellipsis.circle")
+                    Button(action: { showingAddAppointment = true }) {
+                        Image(systemName: "plus")
                     }
                 }
+            }
+            .sheet(isPresented: $showingAddAppointment) {
+                AddAppointmentView()
+                    .environmentObject(routeManager)
+                    .environmentObject(clientManager)
             }
         }
     }
@@ -70,7 +73,12 @@ struct AppointmentRow: View {
                     .foregroundColor(.secondary)
             }
             Spacer()
-            Text(appointment.time, style: .time)
+            VStack(alignment: .trailing) {
+                Text(appointment.time, style: .time)
+                Text("\(appointment.duration) min")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
         }
     }
 }

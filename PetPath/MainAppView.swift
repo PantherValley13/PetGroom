@@ -17,6 +17,7 @@ struct MainAppView: View {
                 .tabItem {
                     Label("Route", systemImage: "map")
                 }
+                .environmentObject(clientManager)
             
             ClientsView()
                 .tabItem {
