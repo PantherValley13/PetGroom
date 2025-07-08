@@ -1,13 +1,14 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var isSubscribed = false
+    @StateObject var subscriptionManager = SubscriptionManager()
     
     var body: some View {
-        if isSubscribed {
+        if subscriptionManager.isSubscribed {
             MainAppView()
         } else {
-            SubscriptionView(isSubscribed: $isSubscribed)
+            SubscriptionView()
+                .environmentObject(subscriptionManager)
         }
     }
 }

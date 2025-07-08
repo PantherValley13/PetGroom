@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 
 struct SubscriptionView: View {
-    @Binding var isSubscribed: Bool
+    @EnvironmentObject var manager: SubscriptionManager
     
     var body: some View {
         VStack(spacing: 30) {
@@ -27,9 +27,7 @@ struct SubscriptionView: View {
             }
             .padding()
             
-            Button(action: {
-                isSubscribed = true
-            }) {
+            Button(action: manager.purchaseSubscription) {
                 Text("Start Free Trial - $29/month after")
                     .font(.headline)
                     .padding()
