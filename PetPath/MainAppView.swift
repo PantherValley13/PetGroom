@@ -11,6 +11,7 @@ import SwiftUI
 struct MainAppView: View {
     @StateObject var clientManager = ClientManager()
     @StateObject var analyticsManager = AnalyticsManager()
+    @StateObject var locationManager = LocationManager()
     
     var body: some View {
         TabView {
@@ -20,6 +21,7 @@ struct MainAppView: View {
                 }
                 .environmentObject(clientManager)
                 .environmentObject(analyticsManager)
+                .environmentObject(locationManager)
             
             ClientsView()
                 .tabItem {
@@ -37,6 +39,7 @@ struct MainAppView: View {
                 .tabItem {
                     Label("Settings", systemImage: "gear")
                 }
+                .environmentObject(locationManager)
         }
         .accentColor(.orange)
     }

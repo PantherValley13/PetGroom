@@ -7,26 +7,47 @@
 
 import Foundation
 import SwiftUI
+import CoreLocation
 
 struct RouteView: View {
     @EnvironmentObject var clientManager: ClientManager
     @EnvironmentObject var analyticsManager: AnalyticsManager
+    @EnvironmentObject var locationManager: LocationManager
     @State private var routeManager: RouteManager?
     @State private var showingAddAppointment = false
     
     var body: some View {
         NavigationView {
             VStack {
-                // Map placeholder
-                ZStack {
-                    Color.gray.opacity(0.2)
-                    Text("Map View")
-                        .foregroundColor(.secondary)
+                // Map or Permission View
+                if locationManager.authorizationStatus == .authorizedWhenInUse || 
+                   locationManager.authorizationStatus == .authorizedAlways {
+                    
+                    if let routeManager = routeManager {
+                        MapView(
+                            userLocation: locationManager.userLocation,
+                            appointments: routeManager.optimizedRoute
+                        )
+                        .frame(height: 300)
+                        .cornerRadius(12)
+                        .padding(.horizontal)
+                    } else {
+                        ZStack {
+                            Color.gray.opacity(0.2)
+                            ProgressView("Loading...")
+                        }
+                        .frame(height: 300)
+                        .cornerRadius(12)
+                        .padding(.horizontal)
+                    }
+                } else {
+                    LocationPermissionView()
+                        .frame(height: 300)
+                        .padding(.horizontal)
+                        .environmentObject(locationManager)
                 }
-                .frame(height: 250)
-                .cornerRadius(12)
-                .padding()
                 
+                // Route optimization button
                 Button("Optimize Route", action: {
                     routeManager?.optimizeRoute()
                 })
@@ -38,23 +59,30 @@ struct RouteView: View {
                 .cornerRadius(10)
                 .padding(.horizontal)
                 
+                // Appointments list
                 if let routeManager = routeManager {
                     List {
                         Section("Optimized Route") {
-                            ForEach(routeManager.optimizedRoute) { appointment in
-                                AppointmentRow(appointment: appointment)
-                                    .swipeActions(edge: .trailing) {
-                                        Button("Complete") {
-                                            routeManager.completeAppointment(appointment)
+                            if routeManager.optimizedRoute.isEmpty {
+                                Text("No appointments scheduled")
+                                    .foregroundColor(.secondary)
+                                    .font(.subheadline)
+                            } else {
+                                ForEach(routeManager.optimizedRoute) { appointment in
+                                    AppointmentRow(appointment: appointment)
+                                        .swipeActions(edge: .trailing) {
+                                            Button("Complete") {
+                                                routeManager.completeAppointment(appointment)
+                                            }
+                                            .tint(.green)
                                         }
-                                        .tint(.green)
-                                    }
+                                }
                             }
                         }
                     }
                 } else {
                     Spacer()
-                    ProgressView("Loading...")
+                    ProgressView("Loading appointments...")
                     Spacer()
                 }
             }

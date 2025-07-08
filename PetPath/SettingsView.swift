@@ -7,11 +7,35 @@
 
 import Foundation
 import SwiftUI
+import CoreLocation
 
 struct SettingsView: View {
+    @EnvironmentObject var locationManager: LocationManager
+    
     var body: some View {
         NavigationView {
             Form {
+                Section("Location") {
+                    HStack {
+                        Image(systemName: "location.circle")
+                            .foregroundColor(.orange)
+                        VStack(alignment: .leading) {
+                            Text("Location Services")
+                                .font(.headline)
+                            Text(locationStatusText)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                        if locationManager.authorizationStatus == .denied {
+                            Button("Enable") {
+                                locationManager.openSettings()
+                            }
+                            .foregroundColor(.blue)
+                        }
+                    }
+                }
+                
                 Section("Account") {
                     NavigationLink("Subscription", destination: Text("Subscription Settings"))
                     NavigationLink("Payment Methods", destination: Text("Payment Settings"))
@@ -28,6 +52,21 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Settings")
+        }
+    }
+    
+    private var locationStatusText: String {
+        switch locationManager.authorizationStatus {
+        case .notDetermined:
+            return "Not requested"
+        case .denied, .restricted:
+            return "Disabled"
+        case .authorizedWhenInUse:
+            return "Enabled while using app"
+        case .authorizedAlways:
+            return "Always enabled"
+        @unknown default:
+            return "Unknown"
         }
     }
 }

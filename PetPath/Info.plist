@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>PetPath needs access to your location to show your current position on the map and optimize routes to your pet grooming appointments.</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>PetPath needs access to your location to show your current position on the map and optimize routes to your pet grooming appointments.</string>
+</dict>
+</plist> 
