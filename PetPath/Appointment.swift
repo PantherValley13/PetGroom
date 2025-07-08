@@ -8,13 +8,34 @@
 import Foundation
 import CoreLocation
 
-struct Appointment: Identifiable {
+// Codable wrapper for CLLocationCoordinate2D
+struct CodableLocationCoordinate2D: Codable {
+    let latitude: Double
+    let longitude: Double
+    
+    init(from coordinate: CLLocationCoordinate2D) {
+        self.latitude = coordinate.latitude
+        self.longitude = coordinate.longitude
+    }
+    
+    var coordinate: CLLocationCoordinate2D {
+        CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+    }
+}
+
+struct Appointment: Identifiable, Codable {
     let id = UUID()
     var client: Client
     var pet: Pet
     var time: Date
     var duration: Int
-    var location: CLLocationCoordinate2D?
+    private var _location: CodableLocationCoordinate2D?
+    
+    // Computed property for convenience
+    var location: CLLocationCoordinate2D? {
+        get { _location?.coordinate }
+        set { _location = newValue.map(CodableLocationCoordinate2D.init) }
+    }
     
     // Computed properties for backward compatibility
     var clientName: String {
@@ -23,6 +44,15 @@ struct Appointment: Identifiable {
     
     var petName: String {
         pet.name
+    }
+    
+    init(client: Client, pet: Pet, time: Date, duration: Int, location: CLLocationCoordinate2D? = nil) {
+        self.id = UUID()
+        self.client = client
+        self.pet = pet
+        self.time = time
+        self.duration = duration
+        self._location = location.map(CodableLocationCoordinate2D.init)
     }
     
     static var sample: [Appointment] {

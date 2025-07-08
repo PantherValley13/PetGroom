@@ -6,7 +6,8 @@
 //
 
 import Foundation
-struct Client: Identifiable {
+
+struct Client: Identifiable, Codable {
     let id = UUID()
     var name: String
     var address: String

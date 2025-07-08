@@ -45,6 +45,12 @@ struct AddAppointmentView: View {
                             }
                         }
                         .disabled(availablePets.isEmpty)
+                        
+                        if availablePets.isEmpty {
+                            Text("No pets found for this client")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                        }
                     }
                 }
                 
