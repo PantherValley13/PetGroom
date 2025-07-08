@@ -9,9 +9,13 @@ import SwiftUI
 
 @main
 struct PetPathApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @StateObject private var subscriptionManager = SubscriptionManager()
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(subscriptionManager)
         }
     }
 }

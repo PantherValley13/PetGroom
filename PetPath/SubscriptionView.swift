@@ -24,25 +24,66 @@ struct SubscriptionView: View {
                 FeatureRow(icon: "map", title: "AI-Optimized Routes", description: "Reduce mileage by 30%")
                 FeatureRow(icon: "note.text", title: "Client Pet Notes", description: "Access critical pet info")
                 FeatureRow(icon: "fuelpump", title: "Fuel Savings", description: "Cut fuel costs with efficient routing")
+                FeatureRow(icon: "location", title: "Real-Time GPS", description: "Live location tracking and navigation")
             }
             .padding()
             
-            Button(action: manager.purchaseSubscription) {
-                Text("Start Free Trial - $29/month after")
-                    .font(.headline)
-                    .padding()
+            VStack(spacing: 16) {
+                // Main subscription button
+                Button(action: {
+                    if manager.isLoading {
+                        return
+                    }
+                    manager.purchaseSubscription()
+                }) {
+                    HStack {
+                        if manager.isLoading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                .scaleEffect(0.8)
+                        }
+                        Text(manager.isLoading ? "Processing..." : "Start Free Trial - $29/month after")
+                            .font(.headline)
+                    }
                     .frame(maxWidth: .infinity)
-                    .background(Color.blue)
+                    .padding()
+                    .background(manager.isLoading ? Color.gray : Color.blue)
                     .foregroundColor(.white)
                     .cornerRadius(12)
+                }
+                .disabled(manager.isLoading)
+                
+                // Restore purchases button
+                Button(action: {
+                    manager.restorePurchases()
+                }) {
+                    Text("Restore Purchases")
+                        .font(.subheadline)
+                        .foregroundColor(.blue)
+                }
+                .disabled(manager.isLoading)
             }
             .padding(.horizontal)
             
-            Text("Cancel anytime. 7-day free trial included.")
+            VStack(spacing: 8) {
+                Text("Cancel anytime. 7-day free trial included.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                HStack(spacing: 16) {
+                    Link("Terms of Service", destination: URL(string: "https://yourapp.com/terms")!)
+                    Text("•")
+                        .foregroundColor(.secondary)
+                    Link("Privacy Policy", destination: URL(string: "https://yourapp.com/privacy")!)
+                }
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundColor(.blue)
+            }
         }
         .padding()
+        .onAppear {
+            manager.loadOfferings()
+        }
     }
 }
 
