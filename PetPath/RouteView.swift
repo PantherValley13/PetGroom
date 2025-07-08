@@ -9,8 +9,9 @@ import Foundation
 import SwiftUI
 
 struct RouteView: View {
-    @StateObject var routeManager = RouteManager()
     @EnvironmentObject var clientManager: ClientManager
+    @EnvironmentObject var analyticsManager: AnalyticsManager
+    @State private var routeManager: RouteManager?
     @State private var showingAddAppointment = false
     
     var body: some View {
@@ -26,21 +27,35 @@ struct RouteView: View {
                 .cornerRadius(12)
                 .padding()
                 
-                Button("Optimize Route", action: routeManager.optimizeRoute)
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.orange)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-                    .padding(.horizontal)
+                Button("Optimize Route", action: {
+                    routeManager?.optimizeRoute()
+                })
+                .font(.headline)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.orange)
+                .foregroundColor(.white)
+                .cornerRadius(10)
+                .padding(.horizontal)
                 
-                List {
-                    Section("Optimized Route") {
-                        ForEach(routeManager.optimizedRoute) { appointment in
-                            AppointmentRow(appointment: appointment)
+                if let routeManager = routeManager {
+                    List {
+                        Section("Optimized Route") {
+                            ForEach(routeManager.optimizedRoute) { appointment in
+                                AppointmentRow(appointment: appointment)
+                                    .swipeActions(edge: .trailing) {
+                                        Button("Complete") {
+                                            routeManager.completeAppointment(appointment)
+                                        }
+                                        .tint(.green)
+                                    }
+                            }
                         }
                     }
+                } else {
+                    Spacer()
+                    ProgressView("Loading...")
+                    Spacer()
                 }
             }
             .navigationTitle("Today's Route")
@@ -52,9 +67,15 @@ struct RouteView: View {
                 }
             }
             .sheet(isPresented: $showingAddAppointment) {
-                AddAppointmentView()
-                    .environmentObject(routeManager)
-                    .environmentObject(clientManager)
+                if let routeManager = routeManager {
+                    AddAppointmentView(routeManager: routeManager)
+                        .environmentObject(clientManager)
+                }
+            }
+            .onAppear {
+                if routeManager == nil {
+                    routeManager = RouteManager(analyticsManager: analyticsManager)
+                }
             }
         }
     }

@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 
 struct AddAppointmentView: View {
-    @EnvironmentObject var routeManager: RouteManager
+    let routeManager: RouteManager
     @EnvironmentObject var clientManager: ClientManager
     @Environment(\.dismiss) var dismiss
     
