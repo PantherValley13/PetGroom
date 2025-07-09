@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import UserNotifications
 // import RevenueCat  // DISABLED FOR TESTING
 
 class AppDelegate: NSObject, UIApplicationDelegate {
@@ -23,6 +24,15 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         
         Purchases.configure(withAPIKey: "appl_YourAPIKey")
         */
+        
+        // Request notification permissions
+        let center = UNUserNotificationCenter.current()
+        center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+            if let error = error {
+                print("Notification permission error: \(error)")
+            }
+            print("Notifications permission granted: \(granted)")
+        }
         
         return true
     }

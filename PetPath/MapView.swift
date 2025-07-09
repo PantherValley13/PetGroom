@@ -55,8 +55,8 @@ struct MapView: UIViewRepresentable {
             
             let annotation = AppointmentAnnotation()
             annotation.coordinate = CLLocationCoordinate2D(latitude: randomLat, longitude: randomLng)
-            annotation.title = appointment.clientName
-            annotation.subtitle = "\(appointment.petName) - \(appointment.time.formatted(.dateTime.hour().minute()))"
+            annotation.title = appointment.client.name
+            annotation.subtitle = "\(appointment.pet.name) - \(appointment.time.formatted(.dateTime.hour().minute()))"
             annotation.appointment = appointment
             return annotation
         }
@@ -119,7 +119,7 @@ struct MapView: UIViewRepresentable {
             if let appointmentAnnotation = view.annotation as? AppointmentAnnotation {
                 // Handle appointment detail tap
                 // You could present a detail view or perform other actions
-                print("Tapped appointment: \(appointmentAnnotation.appointment?.clientName ?? "Unknown")")
+                print("Tapped appointment: \(appointmentAnnotation.appointment?.client.name ?? "Unknown")")
             }
         }
     }

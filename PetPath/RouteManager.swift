@@ -7,13 +7,16 @@
 
 import Foundation
 import SwiftUI
-import Combine 
+import Combine
 
 class RouteManager: ObservableObject {
     @Published var appointments: [Appointment] = []
     @Published var optimizedRoute: [Appointment] = []
+    @Published var isOptimizing = false
+    @Published var optimizationProgress: Double = 0.0
     
     private let analyticsManager: AnalyticsManager
+    private let aiService = AIService()
     
     init(analyticsManager: AnalyticsManager) {
         self.analyticsManager = analyticsManager
@@ -61,16 +64,51 @@ class RouteManager: ObservableObject {
     }
     
     func optimizeRoute() {
+        guard !appointments.isEmpty else {
+            optimizedRoute = []
+            return
+        }
+        
         let previousRouteDistance = calculateRouteDistance(optimizedRoute)
         
-        // Simple sorting for now - will add AI later
-        optimizedRoute = appointments.sorted(by: { $0.time < $1.time })
+        // Use AI optimization if available, otherwise fall back to simple sorting
+        if appointments.count > 3 {
+            optimizeWithAI()
+        } else {
+            // Simple sorting for small numbers of appointments
+            optimizedRoute = appointments.sorted(by: { $0.time < $1.time })
+            trackOptimizationResults(previousDistance: previousRouteDistance)
+        }
+    }
+    
+    private func optimizeWithAI() {
+        isOptimizing = true
+        optimizationProgress = 0.0
         
+        aiService.optimizeRoute(appointments: appointments) { [weak self] result in
+            DispatchQueue.main.async {
+                self?.isOptimizing = false
+                self?.optimizationProgress = 1.0
+                
+                switch result {
+                case .success(let optimizedAppointments):
+                    self?.optimizedRoute = optimizedAppointments
+                    self?.trackOptimizationResults(previousDistance: self?.calculateRouteDistance(self?.appointments ?? []) ?? 0)
+                case .failure(let error):
+                    print("AI optimization failed: \(error.localizedDescription)")
+                    // Fall back to simple sorting
+                    self?.optimizedRoute = self?.appointments.sorted(by: { $0.time < $1.time }) ?? []
+                }
+            }
+        }
+    }
+    
+    private func trackOptimizationResults(previousDistance: Double) {
         let optimizedRouteDistance = calculateRouteDistance(optimizedRoute)
         
         // Track analytics if route was actually optimized
-        if !appointments.isEmpty && previousRouteDistance > optimizedRouteDistance {
-            let milesSaved = previousRouteDistance - optimizedRouteDistance
+        if !appointments.isEmpty && previousDistance > optimizedRouteDistance {
+            let milesSaved = previousDistance - optimizedRouteDistance
             let timeSaved = milesSaved / 35.0 // Assume 35 mph average speed
             let fuelSaved = milesSaved * 0.15 * 3.50 // Assume 15 miles per gallon, $3.50 per gallon
             
@@ -114,4 +152,18 @@ class RouteManager: ObservableObject {
             appointment.time >= today && appointment.time < tomorrow
         }
     }
-} 
+    
+    // MARK: - AI Features
+    
+    func generatePetSummary(for pet: Pet) async -> String {
+        return await aiService.generatePetSummary(pet: pet)
+    }
+    
+    func suggestOptimalTimes(for client: Client) async -> [Date] {
+        return await aiService.suggestOptimalTimes(for: client)
+    }
+    
+    func predictAppointmentDuration(for pet: Pet, serviceType: ServiceType) async -> Int {
+        return await aiService.predictAppointmentDuration(for: pet, serviceType: serviceType)
+    }
+}

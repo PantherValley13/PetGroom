@@ -17,6 +17,11 @@ struct AddAppointmentView: View {
     @State private var selectedPet: Pet?
     @State private var date = Date()
     @State private var duration = 60
+    @State private var selectedServiceType: ServiceType = .grooming
+    @State private var showingAISuggestions = false
+    @State private var aiSuggestedDuration: Int?
+    @State private var aiSuggestedTimes: [Date] = []
+    @State private var isLoadingAI = false
     
     private var availablePets: [Pet] {
         guard let client = selectedClient else { return [] }
@@ -44,34 +49,81 @@ struct AddAppointmentView: View {
                                 Text(pet.name).tag(pet as Pet?)
                             }
                         }
-                        .disabled(availablePets.isEmpty)
-                        
-                        if availablePets.isEmpty {
-                            Text("No pets found for this client")
-                                .foregroundColor(.secondary)
-                                .font(.caption)
+                        .onChange(of: selectedPet) { _, newPet in
+                            if let pet = newPet {
+                                getAISuggestions(for: pet)
+                            }
                         }
                     }
                 }
                 
-                Section("Appointment Details") {
+                Section("Service Details") {
+                    Picker("Service Type", selection: $selectedServiceType) {
+                        ForEach(ServiceType.allCases, id: \.self) { serviceType in
+                            Text(serviceType.rawValue).tag(serviceType)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    
+                    HStack {
+                        Text("Duration")
+                        Spacer()
+                        Text("\(duration) minutes")
+                    }
+                    
+                    if let aiSuggestedDuration = aiSuggestedDuration {
+                        HStack {
+                            Text("AI Suggested")
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Text("\(aiSuggestedDuration) minutes")
+                                .foregroundColor(.orange)
+                        }
+                    }
+                }
+                
+                Section("Date & Time") {
                     DatePicker("Date & Time", selection: $date, displayedComponents: [.date, .hourAndMinute])
                     
-                    Stepper("Duration: \(duration) minutes", value: $duration, in: 15...120, step: 15)
+                    if !aiSuggestedTimes.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("AI Suggested Times")
+                                .font(.headline)
+                                .foregroundColor(.orange)
+                            
+                            ForEach(aiSuggestedTimes, id: \.self) { suggestedTime in
+                                Button(action: {
+                                    date = suggestedTime
+                                }) {
+                                    HStack {
+                                        Text(suggestedTime, style: .time)
+                                        Text(suggestedTime, style: .date)
+                                            .foregroundColor(.secondary)
+                                        Spacer()
+                                        Image(systemName: "clock")
+                                            .foregroundColor(.orange)
+                                    }
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+                }
+                
+                if isLoadingAI {
+                    Section {
+                        HStack {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                            Text("Getting AI suggestions...")
+                                .foregroundColor(.secondary)
+                        }
+                    }
                 }
                 
                 Section {
                     Button("Save Appointment") {
-                        if let client = selectedClient, let pet = selectedPet {
-                            let appointment = Appointment(
-                                client: client,
-                                pet: pet,
-                                time: date,
-                                duration: duration
-                            )
-                            routeManager.addAppointment(appointment)
-                            dismiss()
-                        }
+                        saveAppointment()
                     }
                     .disabled(selectedClient == nil || selectedPet == nil)
                 }
@@ -84,7 +136,108 @@ struct AddAppointmentView: View {
                         dismiss()
                     }
                 }
+                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("AI Help") {
+                        showingAISuggestions = true
+                    }
+                    .disabled(selectedPet == nil)
+                }
+            }
+            .sheet(isPresented: $showingAISuggestions) {
+                if let pet = selectedPet {
+                    AISuggestionsView(pet: pet, serviceType: selectedServiceType)
+                }
             }
         }
     }
-} 
+    
+    private func getAISuggestions(for pet: Pet) {
+        isLoadingAI = true
+        
+        Task {
+            // Get AI suggestions for duration and optimal times
+            let suggestedDuration = await routeManager.predictAppointmentDuration(for: pet, serviceType: selectedServiceType)
+            let suggestedTimes = await routeManager.suggestOptimalTimes(for: selectedClient ?? Client(name: "", address: "", phone: ""))
+            
+            await MainActor.run {
+                aiSuggestedDuration = suggestedDuration
+                aiSuggestedTimes = suggestedTimes
+                isLoadingAI = false
+            }
+        }
+    }
+    
+    private func saveAppointment() {
+        guard let client = selectedClient, let pet = selectedPet else { return }
+        
+        let appointment = Appointment(
+            client: client,
+            pet: pet,
+            time: date,
+            duration: duration,
+            serviceType: selectedServiceType
+        )
+        
+        routeManager.addAppointment(appointment)
+        dismiss()
+    }
+}
+
+struct AISuggestionsView: View {
+    let pet: Pet
+    let serviceType: ServiceType
+    @Environment(\.dismiss) var dismiss
+    @State private var petSummary: String = ""
+    @State private var isLoading = true
+    
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    if isLoading {
+                        HStack {
+                            ProgressView()
+                            Text("Generating AI insights...")
+                                .foregroundColor(.secondary)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding()
+                    } else {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("AI Pet Analysis")
+                                .font(.title2.bold())
+                                .foregroundColor(.orange)
+                            
+                            Text(petSummary)
+                                .font(.body)
+                        }
+                        .padding()
+                    }
+                }
+            }
+            .navigationTitle("AI Suggestions")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .onAppear {
+            loadPetSummary()
+        }
+    }
+    
+    private func loadPetSummary() {
+        Task {
+            let summary = await AIService().generatePetSummary(pet: pet)
+            await MainActor.run {
+                petSummary = summary
+                isLoading = false
+            }
+        }
+    }
+}
