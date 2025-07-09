@@ -6,11 +6,13 @@
 //
 
 import UIKit
-import RevenueCat
+// import RevenueCat  // DISABLED FOR TESTING
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
         
+        // DISABLED RevenueCat configuration for testing
+        /*
         // Configure RevenueCat
         // TODO: Replace with your actual RevenueCat API key
         #if DEBUG
@@ -20,6 +22,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         #endif
         
         Purchases.configure(withAPIKey: "appl_YourAPIKey")
+        */
         
         return true
     }

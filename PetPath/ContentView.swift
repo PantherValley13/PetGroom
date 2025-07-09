@@ -4,6 +4,10 @@ struct ContentView: View {
     @EnvironmentObject var subscriptionManager: SubscriptionManager
     
     var body: some View {
+        // TEMPORARILY BYPASS SUBSCRIPTION CHECK FOR TESTING
+        MainAppView()
+        
+        /*
         Group {
             if subscriptionManager.isLoading {
                 // Show loading screen while checking subscription status
@@ -28,6 +32,7 @@ struct ContentView: View {
         .onAppear {
             subscriptionManager.checkSubscriptionStatus()
         }
+        */
     }
 }
 

@@ -7,11 +7,11 @@
 
 import Foundation
 import SwiftUI
-import RevenueCat
+// import RevenueCat  // DISABLED FOR TESTING
 import Combine
 
 class SubscriptionManager: ObservableObject {
-    @Published var isSubscribed = false
+    @Published var isSubscribed = true  // TEMPORARILY SET TO TRUE FOR TESTING
     @Published var isLoading = false
     @Published var currentPackages: [Package] = []
     @Published var customerInfo: CustomerInfo?
@@ -23,6 +23,13 @@ class SubscriptionManager: ObservableObject {
     func checkSubscriptionStatus() {
         isLoading = true
         
+        // DISABLED RevenueCat - temporarily return subscribed
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.isSubscribed = true
+            self.isLoading = false
+        }
+        
+        /*
         Purchases.shared.getCustomerInfo { [weak self] info, error in
             DispatchQueue.main.async {
                 self?.customerInfo = info
@@ -34,11 +41,19 @@ class SubscriptionManager: ObservableObject {
                 }
             }
         }
+        */
     }
     
     func loadOfferings() {
         isLoading = true
         
+        // DISABLED RevenueCat - temporarily return empty
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.currentPackages = []
+            self.isLoading = false
+        }
+        
+        /*
         Purchases.shared.getOfferings { [weak self] offerings, error in
             DispatchQueue.main.async {
                 if let packages = offerings?.current?.availablePackages {
@@ -51,9 +66,11 @@ class SubscriptionManager: ObservableObject {
                 }
             }
         }
+        */
     }
     
     func purchaseSubscription() {
+        /*
         guard let package = currentPackages.first else {
             loadOfferings()
             return
@@ -78,9 +95,11 @@ class SubscriptionManager: ObservableObject {
                 self?.checkSubscriptionStatus()
             }
         }
+        */
     }
     
     func purchasePackage(_ package: Package) {
+        /*
         isLoading = true
         
         Purchases.shared.purchase(package: package) { [weak self] transaction, customerInfo, error, userCancelled in
@@ -100,11 +119,19 @@ class SubscriptionManager: ObservableObject {
                 self?.checkSubscriptionStatus()
             }
         }
+        */
     }
     
     func restorePurchases() {
         isLoading = true
         
+        // DISABLED RevenueCat - temporarily return success
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.isLoading = false
+            self.checkSubscriptionStatus()
+        }
+        
+        /*
         Purchases.shared.restorePurchases { [weak self] customerInfo, error in
             DispatchQueue.main.async {
                 self?.isLoading = false
@@ -117,5 +144,31 @@ class SubscriptionManager: ObservableObject {
                 self?.checkSubscriptionStatus()
             }
         }
+        */
     }
+}
+
+// MOCK TYPES TO REPLACE RevenueCat types temporarily
+struct Package {
+    let identifier: String
+    let packageType: PackageType
+    let storeProduct: StoreProduct
+}
+
+enum PackageType {
+    case monthly
+    case annual
+}
+
+struct StoreProduct {
+    let localizedTitle: String
+    let localizedPriceString: String
+}
+
+struct CustomerInfo {
+    let entitlements: [String: Entitlement]
+}
+
+struct Entitlement {
+    let isActive: Bool
 } 
