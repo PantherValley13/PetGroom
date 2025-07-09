@@ -13,15 +13,13 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         
         // Configure RevenueCat
         // TODO: Replace with your actual RevenueCat API key
-        Purchases.logLevel = .debug
-        Purchases.configure(withAPIKey: "appl_YourAPIKey")
-        
-        // Enable debug logs for development
         #if DEBUG
         Purchases.logLevel = .debug
         #else
         Purchases.logLevel = .info
         #endif
+        
+        Purchases.configure(withAPIKey: "appl_YourAPIKey")
         
         return true
     }

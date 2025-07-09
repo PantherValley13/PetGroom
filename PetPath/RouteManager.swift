@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import Combine 
 
 class RouteManager: ObservableObject {
     @Published var appointments: [Appointment] = []

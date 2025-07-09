@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Pet: Identifiable, Codable {
+struct Pet: Identifiable, Codable, Hashable {
     let id = UUID()
     var name: String
     var breed: String

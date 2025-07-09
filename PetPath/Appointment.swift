@@ -24,7 +24,7 @@ struct CodableLocationCoordinate2D: Codable {
 }
 
 struct Appointment: Identifiable, Codable {
-    let id = UUID()
+    let id: UUID
     var client: Client
     var pet: Pet
     var time: Date
@@ -46,8 +46,8 @@ struct Appointment: Identifiable, Codable {
         pet.name
     }
     
-    init(client: Client, pet: Pet, time: Date, duration: Int, location: CLLocationCoordinate2D? = nil) {
-        self.id = UUID()
+    init(client: Client, pet: Pet, time: Date, duration: Int, location: CLLocationCoordinate2D? = nil, id: UUID = UUID()) {
+        self.id = id
         self.client = client
         self.pet = pet
         self.time = time

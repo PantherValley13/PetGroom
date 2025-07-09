@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		2332B2532E1DF00100379F45 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = 2332B2522E1DF00100379F45 /* RevenueCat */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		2332B0B62E1DD75200379F45 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2332B2532E1DF00100379F45 /* RevenueCat in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +117,7 @@
 			);
 			name = PetPath;
 			packageProductDependencies = (
+				2332B2522E1DF00100379F45 /* RevenueCat */,
 			);
 			productName = PetPath;
 			productReference = 2332B0A82E1DD75000379F45 /* PetPath.app */;
@@ -195,6 +201,9 @@
 			);
 			mainGroup = 2332B09F2E1DD75000379F45;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				2332B2512E1DF00100379F45 /* XCRemoteSwiftPackageReference "purchases-ios" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 2332B0A92E1DD75000379F45 /* Products */;
 			projectDirPath = "";
@@ -400,13 +409,13 @@
 				DEVELOPMENT_TEAM = V96KD58D5T;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "PetPath needs access to your location to show your current position on the map and optimize routes to your pet grooming appointments.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "PetPath needs access to your location to show your current position on the map and optimize routes to your pet grooming appointments.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "PetPath needs access to your location to show your current position on the map and optimize routes to your pet grooming appointments.";
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "PetPath needs access to your location to show your current position on the map and optimize routes to your pet grooming appointments.";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -434,13 +443,13 @@
 				DEVELOPMENT_TEAM = V96KD58D5T;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "PetPath needs access to your location to show your current position on the map and optimize routes to your pet grooming appointments.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "PetPath needs access to your location to show your current position on the map and optimize routes to your pet grooming appointments.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "PetPath needs access to your location to show your current position on the map and optimize routes to your pet grooming appointments.";
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "PetPath needs access to your location to show your current position on the map and optimize routes to your pet grooming appointments.";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -578,6 +587,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		2332B2512E1DF00100379F45 /* XCRemoteSwiftPackageReference "purchases-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.32.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		2332B2522E1DF00100379F45 /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 2332B2512E1DF00100379F45 /* XCRemoteSwiftPackageReference "purchases-ios" */;
+			productName = RevenueCat;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 2332B0A02E1DD75000379F45 /* Project object */;
 }

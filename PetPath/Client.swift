@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Client: Identifiable, Codable {
+struct Client: Identifiable, Codable, Hashable {
     let id = UUID()
     var name: String
     var address: String

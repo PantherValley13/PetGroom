@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import Combine
 
 struct ClientsView: View {
     @EnvironmentObject var manager: ClientManager
