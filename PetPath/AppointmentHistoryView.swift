@@ -1,5 +1,4 @@
 import Foundation
-import PetPath
 import SwiftUI
 
 struct AppointmentHistoryView: View {

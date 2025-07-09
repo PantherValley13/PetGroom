@@ -28,12 +28,18 @@ struct MainAppView: View {
                     Label("Clients", systemImage: "person.2")
                 }
                 .environmentObject(clientManager)
+                .environmentObject(analyticsManager)
             
-            AnalyticsView()
+            AnalyticsDashboardView()
                 .tabItem {
                     Label("Analytics", systemImage: "chart.bar")
                 }
                 .environmentObject(analyticsManager)
+            
+            AIFeaturesTestView()
+                .tabItem {
+                    Label("AI Test", systemImage: "brain.head.profile")
+                }
             
             SettingsView()
                 .tabItem {
@@ -44,3 +50,4 @@ struct MainAppView: View {
         .accentColor(.orange)
     }
 }
+

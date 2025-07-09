@@ -12,6 +12,7 @@ import Combine
 struct ClientsView: View {
     @EnvironmentObject var manager: ClientManager
     @State private var showingAddClient = false
+    @State private var showingAddPet = false
     
     var body: some View {
         NavigationView {
@@ -20,6 +21,10 @@ struct ClientsView: View {
                     ForEach(manager.clients) { client in
                         NavigationLink(destination: ClientDetailView(client: client)) {
                             ClientRow(client: client)
+                                .onTapGesture {
+                                    // Simulate a local notification for client check-in
+                                    print("Notification: Client check-in for \(client.name)")
+                                }
                         }
                     }
                 }
@@ -28,6 +33,28 @@ struct ClientsView: View {
                     ForEach(manager.pets) { pet in
                         NavigationLink(destination: PetDetailView(pet: pet)) {
                             PetRow(pet: pet)
+                                .onTapGesture {
+                                    // Simulate a local notification for pet check-in
+                                    var notificationMessage = "Pet check-in for \(pet.name)"
+                                    if !pet.allergies.isEmpty || !pet.medicalConditions.isEmpty {
+                                        var allergyMedicalInfo = [String]()
+                                        if !pet.allergies.isEmpty {
+                                            allergyMedicalInfo.append("Allergies: \(pet.allergies.joined(separator: ", "))")
+                                        }
+                                        if !pet.medicalConditions.isEmpty {
+                                            allergyMedicalInfo.append("Medical: \(pet.medicalConditions.joined(separator: ", "))")
+                                        }
+                                        notificationMessage += " - " + allergyMedicalInfo.joined(separator: ", ")
+                                    }
+                                    print("Notification: \(notificationMessage)")
+                                }
+                        }
+                    }
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarTrailing) {
+                            Button(action: { showingAddPet = true }) {
+                                Image(systemName: "plus")
+                            }
                         }
                     }
                 }
@@ -45,20 +72,61 @@ struct ClientsView: View {
                 AddClientView()
                     .environmentObject(manager)
             }
+            .sheet(isPresented: $showingAddPet) {
+                AddPetView()
+                    .environmentObject(manager)
+            }
         }
     }
 }
 
 struct ClientRow: View {
     let client: Client
+    @EnvironmentObject var manager: ClientManager
     
     var body: some View {
-        VStack(alignment: .leading) {
-            Text(client.name)
-                .font(.headline)
-            Text(client.address)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+        HStack(alignment: .top) {
+            VStack(alignment: .leading) {
+                HStack(spacing: 4) {
+                    Text(client.name)
+                        .font(.headline)
+                    if client.isVIP {
+                        Image(systemName: "star.fill")
+                            .foregroundColor(.yellow)
+                            .accessibilityLabel("VIP Client")
+                    }
+                    if let streak = GamificationService.shared.clientStreaks[client.id], streak > 0 {
+                        Text("🔥\(streak)")
+                            .font(.caption2)
+                            .padding(4)
+                            .background(Color.red.opacity(0.8))
+                            .foregroundColor(.white)
+                            .clipShape(Capsule())
+                            .accessibilityLabel("Client Streak")
+                    }
+                    if GamificationService.shared.loyaltyRewards[client.id] == true {
+                        Image(systemName: "gift.fill")
+                            .foregroundColor(.green)
+                            .accessibilityLabel("Loyalty Reward")
+                    }
+                }
+                if client.clv > 0 {
+                    Text("CLV: $\(String(format: "%.2f", client.clv))")
+                        .font(.subheadline)
+                        .foregroundColor(.blue)
+                }
+                Text(client.address)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                
+                HStack(spacing: 6) {
+                    if !client.referralCode.isEmpty || client.referredBy != nil {
+                        Image(systemName: "link")
+                            .foregroundColor(.accentColor)
+                            .accessibilityLabel("Referral Tracking")
+                    }
+                }
+            }
         }
     }
 }
@@ -66,58 +134,72 @@ struct ClientRow: View {
 struct PetRow: View {
     let pet: Pet
     
-    var body: some View {
-        HStack {
-            Image(systemName: "pawprint.fill")
-                .foregroundColor(.orange)
-            VStack(alignment: .leading) {
-                Text(pet.name)
-                    .font(.headline)
-                Text(pet.breed)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-        }
+    var hasBehaviorWarning: Bool {
+        let summary = pet.personalitySummary.lowercased()
+        return summary.contains("anxious") || summary.contains("difficult")
     }
-}
-
-struct ClientDetailView: View {
-    let client: Client
     
     var body: some View {
-        Form {
-            Section("Contact Info") {
-                Text(client.name)
-                Text(client.address)
-                Text(client.phone)
-                if let email = client.email {
-                    Text(email)
+        HStack(alignment: .top, spacing: 12) {
+            if !pet.lastPhotoURL.isEmpty, let url = URL(string: pet.lastPhotoURL) {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .empty:
+                        ProgressView()
+                            .frame(width: 50, height: 50)
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 50, height: 50)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                    case .failure:
+                        Image(systemName: "photo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 50, height: 50)
+                            .foregroundColor(.gray)
+                    @unknown default:
+                        EmptyView()
+                    }
+                }
+            } else {
+                Image(systemName: "pawprint.fill")
+                    .foregroundColor(.orange)
+                    .frame(width: 50, height: 50)
+            }
+            
+            VStack(alignment: .leading) {
+                HStack(spacing: 6) {
+                    Text(pet.name)
+                        .font(.headline)
+                    if !pet.allergies.isEmpty || !pet.medicalConditions.isEmpty {
+                        Image(systemName: "bandage.fill")
+                            .foregroundColor(.red)
+                            .accessibilityLabel("Medical Alert")
+                    }
+                    if hasBehaviorWarning {
+                        Text("⚠️")
+                            .font(.caption)
+                            .padding(4)
+                            .background(Color.yellow.opacity(0.8))
+                            .clipShape(Circle())
+                            .accessibilityLabel("Behavior Warning")
+                    }
+                }
+                if !pet.personalitySummary.isEmpty {
+                    Text(pet.personalitySummary)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+                if !pet.breed.isEmpty {
+                    Text(pet.breed)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
                 }
             }
         }
-        .navigationTitle(client.name)
     }
 }
 
-struct PetDetailView: View {
-    @EnvironmentObject var manager: ClientManager
-    @State var pet: Pet
-    
-    var body: some View {
-        Form {
-            Section("Pet Info") {
-                Text(pet.name)
-                Text(pet.breed)
-            }
-            
-            Section("Notes") {
-                TextEditor(text: $pet.notes)
-                    .frame(minHeight: 200)
-            }
-        }
-        .navigationTitle(pet.name)
-        .onChange(of: pet.notes) { _, newValue in
-            manager.saveNotes(newValue, for: pet)
-        }
-    }
-}
+// Note: PetDetailView is defined in PetDetailView.swift

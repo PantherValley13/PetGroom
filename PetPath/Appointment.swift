@@ -7,6 +7,8 @@
 
 import Foundation
 import CoreLocation
+import Combine
+import SwiftUI
 
 // Codable wrapper for CLLocationCoordinate2D
 struct CodableLocationCoordinate2D: Codable {
@@ -55,6 +57,38 @@ struct Appointment: Identifiable, Codable {
         pet.name
     }
     
+    enum CodingKeys: String, CodingKey {
+        case id, client, pet, time, duration, serviceType, _location
+    }
+}
+
+// MARK: - Codable Implementation
+extension Appointment {
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        client = try container.decode(Client.self, forKey: .client)
+        pet = try container.decode(Pet.self, forKey: .pet)
+        time = try container.decode(Date.self, forKey: .time)
+        duration = try container.decode(Int.self, forKey: .duration)
+        serviceType = try container.decode(ServiceType.self, forKey: .serviceType)
+        _location = try container.decodeIfPresent(CodableLocationCoordinate2D.self, forKey: ._location)
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(client, forKey: .client)
+        try container.encode(pet, forKey: .pet)
+        try container.encode(time, forKey: .time)
+        try container.encode(duration, forKey: .duration)
+        try container.encode(serviceType, forKey: .serviceType)
+        try container.encodeIfPresent(_location, forKey: ._location)
+    }
+}
+
+// Sample data for preview/testing
+extension Appointment {
     init(client: Client, pet: Pet, time: Date, duration: Int, serviceType: ServiceType, location: CLLocationCoordinate2D? = nil, id: UUID = UUID()) {
         self.id = id
         self.client = client
@@ -65,7 +99,6 @@ struct Appointment: Identifiable, Codable {
         self._location = location.map(CodableLocationCoordinate2D.init)
     }
     
-    // Sample data for preview/testing
     static var sample: [Appointment] {
         let client1 = Client(name: "Sarah Johnson", address: "123 Main St", phone: "555-1234")
         let client2 = Client(name: "Michael Chen", address: "456 Oak Ave", phone: "555-5678")
@@ -79,9 +112,10 @@ struct Appointment: Identifiable, Codable {
         let calendar = Calendar.current
         
         return [
-            Appointment(client: client1, pet: pet1, time: calendar.date(byAdding: .hour, value: 1, to: now) ?? now, duration: 60, serviceType: .grooming),
-            Appointment(client: client2, pet: pet2, time: calendar.date(byAdding: .hour, value: 3, to: now) ?? now, duration: 45, serviceType: .bath),
-            Appointment(client: client3, pet: pet3, time: calendar.date(byAdding: .hour, value: 5, to: now) ?? now, duration: 30, serviceType: .nailTrim)
+            Appointment(client: client1, pet: pet1, time: calendar.date(byAdding: .hour, value: 1, to: now) ?? now, duration: 60, serviceType: ServiceType.grooming),
+            Appointment(client: client2, pet: pet2, time: calendar.date(byAdding: .hour, value: 3, to: now) ?? now, duration: 45, serviceType: ServiceType.bath),
+            Appointment(client: client3, pet: pet3, time: calendar.date(byAdding: .hour, value: 5, to: now) ?? now, duration: 30, serviceType: ServiceType.nailTrim)
         ]
     }
 }
+

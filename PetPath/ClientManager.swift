@@ -13,6 +13,9 @@ class ClientManager: ObservableObject {
     @Published var clients: [Client] = []
     @Published var pets: [Pet] = []
     
+    private let gamificationService = GamificationService.shared
+    private let offlineSyncService = OfflineSyncService.shared
+    
     init() {
         loadData()
     }
@@ -57,19 +60,60 @@ class ClientManager: ObservableObject {
     func addClient(_ client: Client) {
         clients.append(client)
         saveData()
+        offlineSyncService.queueChange(key: "clients", value: clients)
     }
     
     func addPet(_ pet: Pet, to client: Client) {
         var newPet = pet
         newPet.ownerId = client.id
+        newPet.aiVisitCount += 1
         pets.append(newPet)
         saveData()
+        offlineSyncService.queueChange(key: "pets", value: pets)
+        
+        if newPet.aiVisitCount >= 3 {
+            Task {
+                let summary = await AIService().generatePetSummary(pet: newPet)
+                if let index = self.pets.firstIndex(where: { $0.id == newPet.id }) {
+                    self.pets[index].personalitySummary = summary
+                    saveData()
+                }
+            }
+        }
+    }
+    
+    public func addPet(_ pet: Pet) {
+        var newPet = pet
+        newPet.aiVisitCount += 1
+        pets.append(newPet)
+        saveData()
+        offlineSyncService.queueChange(key: "pets", value: pets)
+        
+        if newPet.aiVisitCount >= 3 {
+            Task {
+                let summary = await AIService().generatePetSummary(pet: newPet)
+                if let index = self.pets.firstIndex(where: { $0.id == newPet.id }) {
+                    self.pets[index].personalitySummary = summary
+                    saveData()
+                }
+            }
+        }
     }
     
     func saveNotes(_ notes: String, for pet: Pet) {
         if let index = pets.firstIndex(where: { $0.id == pet.id }) {
             pets[index].notes = notes
             saveData()
+            
+            if pets[index].aiVisitCount >= 3 {
+                Task {
+                    let summary = await AIService().generatePetSummary(pet: pets[index])
+                    if let idx = self.pets.firstIndex(where: { $0.id == pets[index].id }) {
+                        self.pets[idx].personalitySummary = summary
+                        saveData()
+                    }
+                }
+            }
         }
     }
     
@@ -87,5 +131,9 @@ class ClientManager: ObservableObject {
     func deletePet(_ pet: Pet) {
         pets.removeAll { $0.id == pet.id }
         saveData()
+    }
+    
+    func recordReferral(for clientId: UUID) {
+        gamificationService.recordReferral(from: clientId)
     }
 } 
